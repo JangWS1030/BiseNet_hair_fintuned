@@ -1,0 +1,94 @@
+experiment:
+  name: aihub85_hair_sd_ft
+  output_dir: outputs
+  seed: 42
+
+model:
+  num_classes: 16
+  input_size: 512
+  output_size: 1024
+  pretrained_backbone: true
+  init_checkpoint: null
+  resume_checkpoint: null
+  strict_load: true
+  allow_partial_load: true
+  compile: false
+  channels_last: true
+
+data:
+  prepared_root: data/aihub85_prepared
+  manifest_path: data/aihub85_prepared/manifest.csv
+  splits_dir: data/aihub85_prepared/splits
+  train_split: train.txt
+  val_split: val.txt
+  test_split: test.txt
+  external_manifest_path: data/aihub83_prepared/manifest.csv
+  external_split: external.txt
+  num_workers: 8
+  batch_size: 8
+  val_batch_size: 4
+  persistent_workers: true
+  pin_memory: true
+  drop_last: true
+  copy_mode: hardlink
+  coarse_labels:
+    background: 0
+    face: 1
+    hair: 10
+    ignore: 255
+  augment:
+    horizontal_flip: 0.5
+    shift_limit: 0.04
+    scale_limit: 0.08
+    rotate_limit: 8
+    brightness_contrast: 0.15
+    gamma_limit: [92, 108]
+    color_jitter: 0.08
+    blur_p: 0.08
+    noise_p: 0.08
+    jpeg_p: 0.08
+
+train:
+  epochs: 24
+  grad_accum_steps: 2
+  mixed_precision: bf16
+  gradient_clip_norm: 1.0
+  log_every: 20
+  eval_every_epochs: 1
+  save_every_epochs: 1
+  save_every_steps: 500
+  amp_enabled: true
+  freeze_backbone_epochs: 0
+
+optimizer:
+  name: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: cosine
+  warmup_epochs: 1
+  min_lr: 1.0e-6
+
+loss:
+  aux_ce_weight: 0.4
+  ce_weight: 1.0
+  hair_dice_weight: 0.5
+  face_dice_weight: 0.2
+  boundary_weight: 0.2
+  boundary_width: 4
+  class_weights:
+    background: 1.0
+    face: 2.0
+    hair: 4.0
+
+eval:
+  subset_columns:
+    - short_hair
+    - bangs
+    - sideburn
+    - dark_hair
+  boundary_tolerance: 2
+  save_predictions: false
+  prediction_limit: 16
